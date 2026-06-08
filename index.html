@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Trazabilidad Pastelería — Sistema QR</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Fraunces:ital,wght@0,300;0,600;1,300&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root {
+  --cream:    #FAF7F2;
+  --cream2:   #F2EDE4;
+  --sand:     #E8DFD0;
+  --tan:      #C9B99A;
+  --brown:    #8B6F4E;
+  --bark:     #5C4433;
+  --sage:     #7A9E7E;
+  --sage-lt:  #C8DEC9;
+  --sage-bg:  #EEF5EE;
+  --rose:     #C97B6E;
+  --rose-lt:  #F5DDD9;
+  --amber:    #D4943A;
+  --amber-lt: #FBF0DC;
+  --ink:      #2C2117;
+  --muted:    #8B7B6B;
+  --radius:   14px;
+  --radius-sm:8px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--ink);min-height:100vh}
+
+/* ── HEADER ─────────────────────────────── */
+.app-header{
+  background:var(--cream);
+  border-bottom:1px solid var(--sand);
+  padding:0 2rem;
+  display:flex;align-items:center;justify-content:space-between;
+  height:64px;position:sticky;top:0;z-index:100;
+}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{
+  width:36px;height:36px;background:var(--bark);border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Fraunces',serif;font-size:18px;color:var(--cream);font-weight:600;
+}
+.logo-text{font-family:'Fraunces',serif;font-size:17px;font-weight:600;color:var(--bark);letter-spacing:-0.3px}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:1px}
+.header-nav{display:flex;gap:4px}
+.nav-btn{
+  padding:6px 14px;border-radius:var(--radius-sm);font-size:13px;font-family:'DM Sans',sans-serif;
+  cursor:pointer;border:none;background:none;color:var(--muted);transition:all .15s;
+}
+.nav-btn:hover{background:var(--cream2);color:var(--ink)}
+.nav-btn.active{background:var(--bark);color:var(--cream)}
+
+/* ── LAYOUT ──────────────────────────────── */
+.app-body{max-width:960px;margin:0 auto;padding:2rem 1.5rem}
+.pane{display:none}.pane.active{display:block}
+
+/* ── CARDS ───────────────────────────────── */
+.card{
+  background:#fff;border:1px solid var(--sand);
+  border-radius:var(--radius);padding:1.5rem;margin-bottom:1rem;
+}
+.card-title{
+  font-family:'Fraunces',serif;font-size:15px;font-weight:600;
+  color:var(--bark);margin-bottom:1rem;display:flex;align-items:center;gap:8px;
+}
+.card-title svg{width:18px;height:18px;stroke:var(--tan)}
+
+/* ── FORM ────────────────────────────────── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-group{display:flex;flex-direction:column;gap:5px;margin-bottom:4px}
+.form-group.full{grid-column:1/-1}
+label{font-size:12px;font-weight:500;color:var(--muted);letter-spacing:.3px;text-transform:uppercase}
+input,select,textarea{
+  font-family:'DM Sans',sans-serif;font-size:14px;
+  padding:10px 12px;border:1px solid var(--sand);border-radius:var(--radius-sm);
+  background:var(--cream);color:var(--ink);outline:none;transition:border .15s;
+}
+input:focus,select:focus,textarea:focus{border-color:var(--tan);background:#fff}
+textarea{resize:none;height:70px}
+.btn-main{
+  width:100%;padding:13px;border-radius:var(--radius);border:none;cursor:pointer;
+  background:var(--bark);color:var(--cream);font-family:'DM Sans',sans-serif;
+  font-size:14px;font-weight:500;margin-top:12px;transition:all .15s;letter-spacing:.2px;
+}
+.btn-main:hover{background:var(--brown)}
+.btn-main:active{transform:scale(.99)}
+
+/* ── BADGES ──────────────────────────────── */
+.badge{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;
+}
+.badge-green{background:var(--sage-bg);color:#3d7a41}
+.badge-amber{background:var(--amber-lt);color:#a0640e}
+.badge-red{background:var(--rose-lt);color:#a04040}
+.badge-blue{background:#EEF3FB;color:#3a5fa0}
+
+/* ── SCAN VIEW ───────────────────────────── */
+.phone-frame{
+  width:320px;margin:0 auto;
+  background:#fff;border:1px solid var(--sand);
+  border-radius:28px;overflow:hidden;
+  box-shadow:0 8px 40px rgba(92,68,51,.12);
+}
+.phone-top{
+  background:var(--bark);padding:1.25rem 1.25rem 1rem;
+  display:flex;justify-content:space-between;align-items:flex-start;
+}
+.phone-top .lote-label{font-size:10px;color:rgba(255,255,255,.6);letter-spacing:.5px;text-transform:uppercase}
+.phone-top .lote-code{font-family:'Fraunces',serif;font-size:20px;color:#fff;font-weight:600;margin-top:2px}
+.phone-top .qr-mini{background:#fff;border-radius:8px;padding:5px;width:64px;height:64px}
+.phone-body{padding:1rem 1.25rem}
+.phone-field{display:flex;justify-content:space-between;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--cream2)}
+.phone-field:last-child{border-bottom:none}
+.phone-key{font-size:11px;color:var(--muted);width:42%}
+.phone-val{font-size:12px;color:var(--ink);font-weight:500;text-align:right;width:55%}
+.phone-obs{
+  margin-top:10px;background:var(--cream);border-radius:var(--radius-sm);
+  padding:10px 12px;font-size:11px;color:var(--muted);font-style:italic;
+}
+.phone-footer{
+  padding:10px 1.25rem 1.25rem;text-align:center;
+  font-size:10px;color:var(--tan);letter-spacing:.3px;
+}
+
+/* ── DASHBOARD ───────────────────────────── */
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:1.25rem}
+.metric-card{
+  background:#fff;border:1px solid var(--sand);border-radius:var(--radius);
+  padding:1rem;text-align:center;
+}
+.metric-val{font-family:'Fraunces',serif;font-size:28px;font-weight:600;color:var(--bark)}
+.metric-label{font-size:11px;color:var(--muted);margin-top:2px;letter-spacing:.2px}
+.lote-row{
+  background:#fff;border:1px solid var(--sand);border-radius:var(--radius);
+  padding:.875rem 1.25rem;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between;
+  transition:border .15s;cursor:pointer;
+}
+.lote-row:hover{border-color:var(--tan)}
+.lote-row-left h4{font-size:14px;font-weight:500;color:var(--ink)}
+.lote-row-left p{font-size:12px;color:var(--muted);margin-top:2px}
+.lote-row-right{text-align:right}
+.lote-row-right p{font-size:11px;color:var(--muted);margin-top:4px}
+
+/* ── STEPS (CÓMO FUNCIONA) ───────────────── */
+.steps-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.step-card{
+  background:#fff;border:1px solid var(--sand);border-radius:var(--radius);
+  padding:1.25rem;position:relative;overflow:hidden;
+}
+.step-card::before{
+  content:attr(data-num);
+  font-family:'Fraunces',serif;font-size:72px;font-weight:600;
+  color:var(--cream2);position:absolute;right:-4px;top:-10px;line-height:1;
+}
+.step-card h3{font-family:'Fraunces',serif;font-size:15px;font-weight:600;color:var(--bark);margin-bottom:6px}
+.step-card p{font-size:13px;color:var(--muted);line-height:1.6;position:relative}
+.step-icon{
+  width:32px;height:32px;border-radius:8px;background:var(--cream2);
+  display:flex;align-items:center;justify-content:center;margin-bottom:10px;
+}
+.step-icon svg{width:16px;height:16px;stroke:var(--brown)}
+
+/* ── ACCESS TABLE ────────────────────────── */
+.access-table{width:100%;border-collapse:collapse;font-size:13px}
+.access-table th{background:var(--cream2);padding:8px 12px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.3px;color:var(--muted);font-weight:500}
+.access-table td{padding:10px 12px;border-bottom:1px solid var(--cream2);color:var(--ink)}
+.access-table tr:last-child td{border-bottom:none}
+.dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:6px}
+.dot-green{background:#5ca060}
+.dot-amber{background:#d4943a}
+.dot-red{background:#c97b6e}
+
+/* ── TOAST ───────────────────────────────── */
+.toast{
+  position:fixed;bottom:2rem;right:2rem;
+  background:var(--bark);color:var(--cream);
+  padding:12px 20px;border-radius:var(--radius);
+  font-size:13px;font-weight:500;
+  transform:translateY(80px);opacity:0;
+  transition:all .3s cubic-bezier(.34,1.56,.64,1);
+  z-index:999;pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── SECTION HEADER ──────────────────────── */
+.section-head{margin-bottom:1.5rem}
+.section-head h2{font-family:'Fraunces',serif;font-size:22px;font-weight:600;color:var(--ink)}
+.section-head p{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.6}
+
+/* ── RESPONSIVE ──────────────────────────── */
+@media(max-width:640px){
+  .form-grid{grid-template-columns:1fr}
+  .metrics{grid-template-columns:repeat(2,1fr)}
+  .steps-grid{grid-template-columns:1fr}
+  .header-nav .nav-btn span{display:none}
+  .app-body{padding:1rem}
+}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">P</div>
+    <div>
+      <div class="logo-text">Pastelería Trazabilidad</div>
+      <div class="logo-sub">Sistema QR · Art. 14° y 66° RSA</div>
+    </div>
+  </div>
+  <nav class="header-nav">
+    <button class="nav-btn active" onclick="showPane('como')">Inicio</button>
+    <button class="nav-btn" onclick="showPane('registro')">Registrar</button>
+    <button class="nav-btn" onclick="showPane('scan')">Ver QR</button>
+    <button class="nav-btn" onclick="showPane('panel')">Panel</button>
+  </nav>
+</header>
+
+<main class="app-body">
+
+<!-- ── CÓMO FUNCIONA ── -->
+<div id="pane-como" class="pane active">
+  <div class="section-head">
+    <h2>Sistema de Trazabilidad Digital</h2>
+    <p>Registro de lotes con código QR para acceso inmediato desde cualquier dispositivo. Cumple Art. 14° y 66° del D.S. N° 977/96.</p>
+  </div>
+  <div class="steps-grid" style="margin-bottom:1.25rem">
+    <div class="step-card" data-num="1">
+      <div class="step-icon">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      </div>
+      <h3>Registrar el lote</h3>
+      <p>El operario completa el formulario al inicio de cada producción. Demora menos de 2 minutos desde celular o computador.</p>
+    </div>
+    <div class="step-card" data-num="2">
+      <div class="step-icon">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8H3m2 8H3m18-8h-1M4 4l1 1m14-1l-1 1M5 20l1-1M18 4l1 1"/></svg>
+      </div>
+      <h3>Generar el QR</h3>
+      <p>El sistema genera automáticamente un código QR único para ese lote con todos los datos de trazabilidad.</p>
+    </div>
+    <div class="step-card" data-num="3">
+      <div class="step-icon">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+      </div>
+      <h3>Imprimir y pegar</h3>
+      <p>Se imprime en etiqueta adhesiva y se pega al producto o bandeja. Compatible con cualquier impresora.</p>
+    </div>
+    <div class="step-card" data-num="4">
+      <div class="step-icon">
+        <svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><circle cx="12" cy="13" r="3" stroke-linecap="round"/></svg>
+      </div>
+      <h3>Escanear y verificar</h3>
+      <p>Inspector, jefa o auditor escanea con el celular y accede a toda la trazabilidad al instante. Sin apps.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">
+      <svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      Control de accesos
+    </div>
+    <table class="access-table">
+      <tr>
+        <th>Rol</th><th>¿Cómo accede?</th><th>¿Qué puede hacer?</th>
+      </tr>
+      <tr>
+        <td><strong>Operario / Pastelero</strong></td>
+        <td>Link o QR fijo en la cocina</td>
+        <td><span class="dot dot-green"></span>Registrar lotes nuevos</td>
+      </tr>
+      <tr>
+        <td><strong>Jefa de Pastelería</strong></td>
+        <td>Acceso con contraseña</td>
+        <td><span class="dot dot-green"></span>Ver todo · Editar · Exportar</td>
+      </tr>
+      <tr>
+        <td><strong>Inspector SEREMI</strong></td>
+        <td>Escanea QR del producto</td>
+        <td><span class="dot dot-amber"></span>Solo ver ese lote</td>
+      </tr>
+      <tr>
+        <td><strong>Sin acceso</strong></td>
+        <td>Sin link ni QR válido</td>
+        <td><span class="dot dot-red"></span>No puede ver nada</td>
+      </tr>
+    </table>
+  </div>
+  <button class="btn-main" style="max-width:300px" onclick="showPane('registro')">Registrar primer lote →</button>
+</div>
+
+<!-- ── REGISTRO ── -->
+<div id="pane-registro" class="pane">
+  <div class="section-head">
+    <h2>Registrar Lote de Producción</h2>
+    <p>Completa los campos. El código QR se genera automáticamente al guardar.</p>
+  </div>
+  <div class="card">
+    <div class="card-title">
+      <svg fill="none" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      Hoja de Producción Diaria
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Código de lote (DD-MM-AA-XX)</label>
+        <input id="f-lote" type="text" placeholder="08-06-26-01">
+      </div>
+      <div class="form-group">
+        <label>Fecha de producción</label>
+        <input id="f-fecha" type="date">
+      </div>
+      <div class="form-group full">
+        <label>Nombre del producto</label>
+        <input id="f-producto" type="text" placeholder="Ej: Torta Hojarasca con Manjar y Crema Batida">
+      </div>
+      <div class="form-group">
+        <label>Fecha de vencimiento</label>
+        <input id="f-venc" type="date">
+      </div>
+      <div class="form-group">
+        <label>Cantidad producida</label>
+        <input id="f-cantidad" type="text" placeholder="Ej: 12 unidades">
+      </div>
+      <div class="form-group full">
+        <label>Materias primas y lotes de proveedor</label>
+        <input id="f-mp" type="text" placeholder="Ej: Manjar Soprole (Lote MS2605A), Crema batida (Lote CB1605A)">
+      </div>
+      <div class="form-group">
+        <label>Temperatura al uso (°C)</label>
+        <input id="f-temp" type="text" placeholder="Ej: 4°C">
+      </div>
+      <div class="form-group">
+        <label>Responsable</label>
+        <input id="f-resp" type="text" placeholder="Nombre del operario">
+      </div>
+      <div class="form-group full">
+        <label>Observaciones / Desviaciones</label>
+        <textarea id="f-obs" placeholder="Anotar cualquier desviación del proceso o situación especial…"></textarea>
+      </div>
+    </div>
+    <button class="btn-main" onclick="guardarLote()">Guardar lote y generar QR →</button>
+  </div>
+</div>
+
+<!-- ── SCAN / QR ── -->
+<div id="pane-scan" class="pane">
+  <div class="section-head">
+    <h2>Vista al escanear el QR</h2>
+    <p>Así ve cualquier persona cuando apunta la cámara del celular al código QR del producto.</p>
+  </div>
+  <div id="no-lotes" style="text-align:center;padding:3rem;color:var(--muted);display:none">
+    <p style="font-size:15px">No hay lotes registrados aún.</p>
+    <button class="btn-main" style="max-width:220px;margin-top:1rem" onclick="showPane('registro')">Registrar primer lote</button>
+  </div>
+  <div id="scan-content">
+    <div style="display:flex;gap:1rem;align-items:flex-start;flex-wrap:wrap">
+      <div class="phone-frame" style="flex-shrink:0">
+        <div class="phone-top">
+          <div>
+            <div class="lote-label">Código de lote</div>
+            <div class="lote-code" id="s-lote">—</div>
+            <div style="margin-top:6px"><span class="badge" id="s-estado-badge">—</span></div>
+          </div>
+          <div class="qr-mini" id="qr-display"></div>
+        </div>
+        <div class="phone-body">
+          <div class="phone-field">
+            <span class="phone-key">Producto</span>
+            <span class="phone-val" id="s-producto">—</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Elaboración</span>
+            <span class="phone-val" id="s-fecha">—</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Vencimiento</span>
+            <span class="phone-val" id="s-venc">—</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Cantidad</span>
+            <span class="phone-val" id="s-cantidad">—</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Materias primas</span>
+            <span class="phone-val" id="s-mp" style="font-size:11px">—</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Temperatura</span>
+            <span class="phone-val" id="s-temp">—</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Conservación</span>
+            <span class="phone-val">Refrigeración 0–5°C</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Alérgenos</span>
+            <span class="phone-val" style="font-size:10px">GLUTEN · LECHE · HUEVO</span>
+          </div>
+          <div class="phone-field">
+            <span class="phone-key">Responsable</span>
+            <span class="phone-val" id="s-resp">—</span>
+          </div>
+          <div class="phone-obs" id="s-obs">—</div>
+        </div>
+        <div class="phone-footer">Pastelería · Portafolio de Título 2026 · Art. 14° y 66° RSA</div>
+      </div>
+      <div style="flex:1;min-width:220px">
+        <div class="card" style="margin-bottom:.75rem">
+          <div style="font-size:12px;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;margin-bottom:.75rem">Seleccionar lote</div>
+          <div id="lote-selector"></div>
+        </div>
+        <div class="card" style="background:var(--sage-bg);border-color:var(--sage-lt)">
+          <p style="font-size:12px;color:#3d7a41;line-height:1.6"><strong>Tip de uso:</strong> Imprime el QR en una etiqueta adhesiva 4×4 cm y pégala al producto o a la bandeja. Cualquier celular moderno lo escanea con la cámara sin necesitar app.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── PANEL ── -->
+<div id="pane-panel" class="pane">
+  <div class="section-head">
+    <h2>Panel de Control</h2>
+    <p>Resumen de todos los lotes registrados. Solo visible para la jefa y encargada de calidad.</p>
+  </div>
+  <div class="metrics">
+    <div class="metric-card">
+      <div class="metric-val" id="m-total">0</div>
+      <div class="metric-label">Lotes totales</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" id="m-vigentes" style="color:var(--sage)">0</div>
+      <div class="metric-label">Vigentes</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" id="m-vencidos" style="color:var(--rose)">0</div>
+      <div class="metric-label">Vencidos</div>
+    </div>
+    <div class="metric-card">
+      <div class="metric-val" id="m-hoy">0</div>
+      <div class="metric-label">Registrados hoy</div>
+    </div>
+  </div>
+  <div id="panel-lista">
+    <div style="text-align:center;padding:3rem;color:var(--muted)">
+      <p>Aún no hay lotes registrados.</p>
+      <button class="btn-main" style="max-width:220px;margin-top:1rem" onclick="showPane('registro')">Registrar primer lote</button>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+var lotes = JSON.parse(localStorage.getItem('lotes_pasteleria') || '[]');
+var loteActivo = 0;
+
+function setToday(){
+  var today = new Date().toISOString().split('T')[0];
+  document.getElementById('f-fecha').value = today;
+}
+setToday();
+
+function showPane(id){
+  document.querySelectorAll('.pane').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.nav-btn').forEach(function(b){b.classList.remove('active')});
+  document.getElementById('pane-'+id).classList.add('active');
+  var map = {como:0,registro:1,scan:2,panel:3};
+  document.querySelectorAll('.nav-btn')[map[id]].classList.add('active');
+  if(id==='scan') renderScan();
+  if(id==='panel') renderPanel();
+}
+
+function toast(msg){
+  var t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(function(){t.classList.remove('show')},3000);
+}
+
+function fmtDate(str){
+  if(!str) return '—';
+  var p = str.split('-');
+  return p[2]+'/'+p[1]+'/'+p[0];
+}
+
+function diasRestantes(vencStr){
+  if(!vencStr) return null;
+  var hoy = new Date(); hoy.setHours(0,0,0,0);
+  var venc = new Date(vencStr+'T00:00:00');
+  return Math.round((venc - hoy)/(1000*60*60*24));
+}
+
+function guardarLote(){
+  var lote = document.getElementById('f-lote').value.trim();
+  var producto = document.getElementById('f-producto').value.trim();
+  if(!lote || !producto){
+    toast('Completa al menos el código de lote y el producto.');
+    return;
+  }
+  var obj = {
+    lote: lote,
+    fecha: document.getElementById('f-fecha').value,
+    producto: producto,
+    venc: document.getElementById('f-venc').value,
+    cantidad: document.getElementById('f-cantidad').value,
+    mp: document.getElementById('f-mp').value,
+    temp: document.getElementById('f-temp').value,
+    resp: document.getElementById('f-resp').value,
+    obs: document.getElementById('f-obs').value,
+    ts: Date.now()
+  };
+  lotes.unshift(obj);
+  localStorage.setItem('lotes_pasteleria', JSON.stringify(lotes));
+  loteActivo = 0;
+  toast('✓ Lote '+lote+' registrado correctamente.');
+  document.getElementById('f-lote').value='';
+  document.getElementById('f-producto').value='';
+  document.getElementById('f-cantidad').value='';
+  document.getElementById('f-mp').value='';
+  document.getElementById('f-temp').value='';
+  document.getElementById('f-resp').value='';
+  document.getElementById('f-obs').value='';
+  document.getElementById('f-venc').value='';
+  setToday();
+  setTimeout(function(){showPane('scan')},600);
+}
+
+function renderQR(loteCode, container){
+  container.innerHTML='';
+  if(!loteCode) return;
+  try{
+    new QRCode(container,{
+      text: window.location.href+'#lote='+encodeURIComponent(loteCode),
+      width:56,height:56,
+      colorDark:'#2C2117',colorLight:'#ffffff',
+      correctLevel:QRCode.CorrectLevel.M
+    });
+  }catch(e){}
+}
+
+function renderScan(){
+  var noLotes = document.getElementById('no-lotes');
+  var scanContent = document.getElementById('scan-content');
+  if(lotes.length===0){
+    noLotes.style.display='block';
+    scanContent.style.display='none';
+    return;
+  }
+  noLotes.style.display='none';
+  scanContent.style.display='block';
+  var l = lotes[loteActivo];
+  var dias = diasRestantes(l.venc);
+  var vigente = dias === null || dias >= 0;
+  document.getElementById('s-lote').textContent = l.lote || '—';
+  document.getElementById('s-producto').textContent = l.producto || '—';
+  document.getElementById('s-fecha').textContent = fmtDate(l.fecha);
+  document.getElementById('s-venc').textContent = l.venc ? fmtDate(l.venc)+(dias!==null?' ('+dias+' días)':'') : '—';
+  document.getElementById('s-cantidad').textContent = l.cantidad || '—';
+  document.getElementById('s-mp').textContent = l.mp || '—';
+  document.getElementById('s-temp').textContent = l.temp || '—';
+  document.getElementById('s-resp').textContent = l.resp || '—';
+  document.getElementById('s-obs').textContent = l.obs || 'Sin observaciones.';
+  var badge = document.getElementById('s-estado-badge');
+  if(dias===null){badge.textContent='Registrado';badge.className='badge badge-blue';}
+  else if(dias<0){badge.textContent='Vencido';badge.className='badge badge-red';}
+  else if(dias<=2){badge.textContent='Por vencer';badge.className='badge badge-amber';}
+  else{badge.textContent='Vigente ✓';badge.className='badge badge-green';}
+  renderQR(l.lote, document.getElementById('qr-display'));
+  var sel = document.getElementById('lote-selector');
+  sel.innerHTML='';
+  lotes.forEach(function(lt,i){
+    var d = diasRestantes(lt.venc);
+    var v = d===null||d>=0;
+    var btn = document.createElement('button');
+    btn.style.cssText='width:100%;text-align:left;padding:8px 10px;border-radius:8px;border:1px solid '+(i===loteActivo?'var(--tan)':'var(--sand)')+';background:'+(i===loteActivo?'var(--cream2)':'#fff')+';cursor:pointer;font-family:"DM Sans",sans-serif;font-size:13px;color:var(--ink);margin-bottom:6px;display:flex;justify-content:space-between;align-items:center';
+    btn.innerHTML='<span><strong>'+lt.lote+'</strong><br><span style="font-size:11px;color:var(--muted)">'+lt.producto.substring(0,28)+(lt.producto.length>28?'…':'')+'</span></span><span class="badge '+(v?'badge-green':'badge-red')+'" style="font-size:10px">'+(v?'OK':'Venc.')+'</span>';
+    btn.onclick=(function(idx){return function(){loteActivo=idx;renderScan();}})(i);
+    sel.appendChild(btn);
+  });
+}
+
+function renderPanel(){
+  var hoy = new Date().toDateString();
+  var vigentes=0,vencidos=0,registHoy=0;
+  lotes.forEach(function(l){
+    var d=diasRestantes(l.venc);
+    if(d===null||d>=0) vigentes++; else vencidos++;
+    if(new Date(l.ts).toDateString()===hoy) registHoy++;
+  });
+  document.getElementById('m-total').textContent=lotes.length;
+  document.getElementById('m-vigentes').textContent=vigentes;
+  document.getElementById('m-vencidos').textContent=vencidos;
+  document.getElementById('m-hoy').textContent=registHoy;
+  var lista=document.getElementById('panel-lista');
+  if(lotes.length===0){
+    lista.innerHTML='<div style="text-align:center;padding:3rem;color:var(--muted)"><p>Aún no hay lotes registrados.</p><button class="btn-main" style="max-width:220px;margin-top:1rem" onclick="showPane(\'registro\')">Registrar primer lote</button></div>';
+    return;
+  }
+  lista.innerHTML='';
+  lotes.forEach(function(l,i){
+    var d=diasRestantes(l.venc);
+    var vigente=d===null||d>=0;
+    var div=document.createElement('div');
+    div.className='lote-row';
+    div.innerHTML='<div class="lote-row-left"><h4>'+l.lote+'</h4><p>'+l.producto+(l.resp?' · '+l.resp:'')+'</p></div><div class="lote-row-right"><span class="badge '+(vigente?'badge-green':'badge-red')+'">'+(d===null?'Sin fecha':d<0?'Vencido':d<=2?'Por vencer':'Vigente')+'</span><p>'+fmtDate(l.fecha)+(l.venc?' → '+fmtDate(l.venc):'')+'</p></div>';
+    div.onclick=(function(idx){return function(){loteActivo=idx;showPane('scan');}})(i);
+    lista.appendChild(div);
+  });
+}
+</script>
+</body>
+</html>
