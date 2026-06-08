@@ -497,6 +497,8 @@ function diasRestantes(vencStr){
   return Math.round((venc - hoy)/(1000*60*60*24));
 }
 
+var SHEETS_URL = 'https://script.google.com/macros/s/AKfycbyBPdup7cwA8mvEYy5s3F-MYYQ8bNiR5DW_Fz9G3wOKB3k_cYNpXoEB7H24jtjFq6izsQ/exec';
+
 function guardarLote(){
   var lote = document.getElementById('f-lote').value.trim();
   var producto = document.getElementById('f-producto').value.trim();
@@ -516,10 +518,30 @@ function guardarLote(){
     obs: document.getElementById('f-obs').value,
     ts: Date.now()
   };
+
+  // Guardar local
   lotes.unshift(obj);
   localStorage.setItem('lotes_pasteleria', JSON.stringify(lotes));
   loteActivo = 0;
-  toast('✓ Lote '+lote+' registrado correctamente.');
+
+  // Enviar a Google Sheets
+  var btnGuardar = document.querySelector('.btn-main[onclick="guardarLote()"]');
+  if(btnGuardar){ btnGuardar.textContent = 'Guardando...'; btnGuardar.disabled = true; }
+
+  fetch(SHEETS_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(obj)
+  }).then(function(){
+    toast('✓ Lote '+lote+' guardado en Google Sheets.');
+  }).catch(function(){
+    toast('✓ Lote guardado localmente (sin conexión).');
+  }).finally(function(){
+    if(btnGuardar){ btnGuardar.textContent = 'Guardar lote y generar QR →'; btnGuardar.disabled = false; }
+  });
+
+  // Limpiar formulario
   document.getElementById('f-lote').value='';
   document.getElementById('f-producto').value='';
   document.getElementById('f-cantidad').value='';
